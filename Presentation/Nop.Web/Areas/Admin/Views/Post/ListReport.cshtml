@@ -1,0 +1,149 @@
+﻿@model ReportSearchModel
+
+@{
+    //page title
+    ViewBag.PageTitle = T("Admin.System.BaoCaoViPham").Text;
+    //active menu item (system name)
+    Html.SetActiveMenuItemSystemName("BaoCaoViPham");
+
+    const string hideSearchBlockAttributeName = "ReportPage.HideSearchReport";
+    var hideSearchBlock = genericAttributeService.GetAttribute<bool>(workContext.CurrentCustomer, hideSearchBlockAttributeName);
+}
+
+<div class="content-header clearfix">
+    <h1 class="pull-left">
+        @T("Admin.System.BaoCaoViPham")
+    </h1>
+    <div class="pull-right">
+        &nbsp;
+    </div>
+</div>
+
+<div class="content">
+    <div class="form-horizontal">
+        <div class="panel-group">
+            <div class="panel panel-default panel-search">
+                <div class="panel-body">
+                    <div class="row search-row @(!hideSearchBlock ? "opened" : "")" data-hideAttribute="@hideSearchBlockAttributeName">
+                        <div class="search-text">@T("Admin.Common.Search")</div>
+                        <div class="icon-search"><i class="fa fa-search" aria-hidden="true"></i></div>
+                        <div class="icon-collapse"><i class="fa fa-angle-down" aria-hidden="true"></i></div>
+                    </div>
+
+                    <div class="search-body @(hideSearchBlock ? "closed" : "")">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <div class="col-md-4">
+                                        <nop-label asp-for="isNew" />
+                                    </div>
+                                    <div class="col-md-8">
+                                        <nop-select asp-for="isNew" asp-items="Model.ListStatus" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <div class="col-md-7 col-md-offset-5">
+                                <button type="button" id="search-Post" class="btn btn-primary btn-search">
+                                    <i class="fa fa-search"></i>
+                                    @T("Admin.Common.Search")
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="panel-group">
+            <div class="panel panel-default">
+                <div class="panel-body">
+                    <p>
+                        <strong>@T("Admin.System.Reports.RestartApplication")</strong>
+                    </p>
+
+                    @await Html.PartialAsync("Table", new DataTablesModel
+                    {
+                        Name = "schedule-tasks-grid",
+                        UrlRead = new DataUrl("ListReport", "Post", null),
+                        UrlUpdate = new DataUrl("UpdateInlineReport", "Post", null),
+                        Length = Model.PageSize,
+                        SearchButtonId = "search-Post",
+                        LengthMenu = Model.AvailablePageSizes,
+                        Filters = new List<FilterParameter>
+                        {
+                            new FilterParameter(nameof(Model.isNew))
+                        },
+                        ColumnCollection = new List<ColumnProperty>
+                            {
+                                new ColumnProperty(nameof(ReportModel.Id))
+                                {
+                                    Title = T("Admin.System.Reports.ShowPost").Text,
+                                    Width = "100",
+                                    ClassName =  NopColumnClassDefaults.Button,
+                                    Render = new RenderCustom("renderColumnShowPost")
+                                },
+                                new ColumnProperty(nameof(ReportModel.Name))
+                                {
+                                    Title = T("Admin.System.Reports.Name").Text,
+                                    Width = "200",
+                                },
+                                new ColumnProperty(nameof(ReportModel.Title))
+                                {
+                                    Title = T("Admin.System.Reports.Title").Text,
+                                },
+                                new ColumnProperty(nameof(ReportModel.Content))
+                                {
+                                    Title = T("Admin.System.Reports.Content").Text,
+                                    ClassName = NopColumnClassDefaults.CenterAll
+                                },
+                                new ColumnProperty(nameof(ReportModel.CreatedAt))
+                                {
+                                    Title = T("Admin.System.Reports.CreatedAt").Text,
+                                    Render = new RenderDate()
+                                },
+                                new ColumnProperty(nameof(ReportModel.isNew))
+                                {
+                                    Title = T("Admin.System.Reports.isNew").Text,
+                                    Width = "50",
+                                    ClassName = NopColumnClassDefaults.CenterAll,
+                                    Render = new RenderBoolean(),
+                                    Editable = true,
+                                    EditType = EditType.Checkbox
+                                },
+                                new ColumnProperty(nameof(ReportModel.Id))
+                                {
+                                    Title = T("Admin.System.Reports.Noti").Text,
+                                    Width = "100",
+                                    ClassName =  NopColumnClassDefaults.Button,
+                                    Render = new RenderCustom("renderColumnThongBao")
+                                },
+                                new ColumnProperty(nameof(ReportModel.Id))
+                                {
+                                    Title = T("Admin.Common.Edit").Text,
+                                    Width = "100",
+                                    ClassName =  NopColumnClassDefaults.Button,
+                                    Render = new RenderButtonsInlineEdit()
+                                }
+                            }
+                    })
+                <script>
+                        function renderColumnShowPost(data, type, row, meta) {
+                            let bl = row.Title.split("/")[0] == "Tin nhắn";
+                            if (bl) {
+                                let id = row.TargetId > row.FormId ? row.FormId + "," + row.TargetId : row.TargetId + "," + row.FormId;
+                                return '<a href="@Url.Content("~/CloudFirestore/Chat/")' + id + '"  target="_blank">#' + row.TargetId +'</a>';
+                            }
+
+                            return '<a href="@Url.Content("~/Post/EditPost/")' + row.TargetId + '"  target="_blank">#' + row.TargetId +'</a>';
+                        }
+                        function renderColumnThongBao(data, type, row, meta) {
+                            return '<a href="@Url.Content("~/Notification/CreateNotification/")' + row.FormId + '" class="bg-olive btn"  target="_blank">@T("phanhoi.thanhvien").Text</a>';
+                        };
+                </script>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

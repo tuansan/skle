@@ -1,0 +1,128 @@
+﻿@model ChatSearchModel
+
+@{
+    //page title
+    ViewBag.PageTitle = T("Admin.Catalog.Chats").Text;
+    //active menu item (system name)
+    Html.SetActiveMenuItemSystemName("Chats");
+    const string hideSearchBlockAttributeName = "ChatPage.HideSearchBlock";
+    var hideSearchBlock = genericAttributeService.GetAttribute<bool>(workContext.CurrentCustomer, hideSearchBlockAttributeName);
+}
+
+<div class="content-header clearfix">
+    <h1 class="pull-left">
+        @T("Admin.Catalog.Chats") [@Model.mem1 - @Model.mem2]
+        <small>
+            <i class="fa fa-arrow-circle-left"></i>
+            <a href="javascript:window.history.back()" >@T("Admin.Catalog.BackToList")</a>
+        </small>
+    </h1>
+    <div class="pull-right">
+        <button type="button" id="delete-selected" class="btn bg-red">
+            <i class="fa fa-trash-o"></i>
+            @T("Admin.Common.Delete.Selected")
+        </button>
+        <nop-action-confirmation asp-button-id="delete-selected" />
+    </div>
+</div>
+
+<div class="content">
+    <div class="form-horizontal">
+        <div class="panel panel-default">
+            <div class="panel-body">
+                @await Html.PartialAsync("Table", new DataTablesModel
+           {
+               Name = "Chat-grid",
+               UrlRead = new DataUrl("ListChat", "CloudFirestore", new RouteValueDictionary { [nameof(Model.chatId)] = Model.chatId }),
+               SearchButtonId = "search-Chat",
+               Length = Model.PageSize,
+               LengthMenu = Model.AvailablePageSizes,
+               UrlDelete = new DataUrl("DeleteChatRequest", "CloudFirestore", new RouteValueDictionary { [nameof(Model.chatId)] = Model.chatId }),
+               
+               ColumnCollection = new List<ColumnProperty>
+                    {
+                        new ColumnProperty(nameof(ChatModel.Id))
+                        {
+                            IsMasterCheckBox = true,
+                            Render = new RenderCheckBox("checkbox_Chat"),
+                            ClassName =  NopColumnClassDefaults.CenterAll,
+                            Width = "50"
+                        },
+
+                        new ColumnProperty(nameof(ChatModel.Id))
+                        {
+                            Title = T("admin.catalog.name").Text,
+                            ClassName =  NopColumnClassDefaults.CenterAll,
+                            Width = "100",
+                            Render = new RenderCustom("renderColumnName")
+                        },
+                        new ColumnProperty(nameof(ChatModel.content))
+                        {
+                            Title = T("admin.catalog.content").Text,
+                            Render = new RenderCustom("renderColumncontent")
+                        },
+
+                        new ColumnProperty(nameof(ChatModel.times))
+                        {
+                            Title = T("admin.catalog.times").Text,
+                            ClassName =  NopColumnClassDefaults.CenterAll,
+                            Width = "90",
+                            Render = new RenderDate()
+                        },
+                    new ColumnProperty(nameof(GroupMemberModel.Id))
+                    {
+                        Title = T("Admin.Common.Delete").Text,
+                        Width = "100",
+                        Render = new RenderButtonRemove(T("Admin.Common.Delete").Text),
+                        ClassName = NopColumnClassDefaults.Button
+                    }
+               }
+           })
+                <script>
+                    function renderColumncontent(data, type, row, meta) {
+                        if (row.type == 'image') {
+                            let list = row.content.split(",");
+                            let str = "";
+                            Array.from(list).map(item => {
+                                if (item) {
+                                    str += '<span><img height="100" style="margin: 0 10px" src="' + item + '" alt="image" /></span>';
+                                }
+                            })
+                            return str;
+                        }
+                        return '<span>' + row.content + '</span>';
+                    };
+                    function renderColumnName(data, type, row, meta) {
+                        return '<span>' + row.Name1 + row.Name2 + '</span>';
+                    };
+                        $(document).ready(function () {
+                            $('#delete-selected-action-confirmation-submit-button').bind('click', function () {
+                                var postData = {
+                                    selectedIds: selectedIds,
+                                    chatId: '@Model.chatId'
+                                };
+                                addAntiForgeryToken(postData);
+                                $.ajax({
+                                    cache: false,
+                                    type: "POST",
+                                    url: "@(Url.Action("DeleteChatSelected", "CloudFirestore"))",
+                                    data: postData,
+                                    error: function (jqXHR, textStatus, errorThrown) {
+                                        $('#deleteSelectedFailed-info').text(errorThrown);
+                                        $('#deleteSelectedFailed').click();
+                                    },
+                                    complete: function (jqXHR, textStatus) {
+                                        updateTable('#Chat-grid');
+                                    }
+                                });
+                                $('#delete-selected-action-confirmation').modal('toggle');
+                                return false;
+                            });
+                        });
+                </script>
+                <nop-alert asp-alert-id="deleteSelectedFailed" />
+            </div>
+        </div>
+    </div>
+</div>
+

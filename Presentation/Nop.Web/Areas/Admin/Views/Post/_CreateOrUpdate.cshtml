@@ -1,0 +1,35 @@
+﻿@model PostModel
+
+<div asp-validation-summary="All"></div>
+<input asp-for="Id" type="hidden" />
+
+<div class="content">
+    <div class="form-horizontal">
+        <div class="panel panel-default">
+            <div class="panel-body">
+                <div class="form-group">
+                    <div class="col-md-3">
+                        <nop-label asp-for="Content" />
+                    </div>
+                    <div class="col-md-9">
+                        <nop-textarea asp-for="Content"/>
+                        <span asp-validation-for="Content"></span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-md-3">
+                        <nop-label asp-for="Deleted" />
+                    </div>
+                    <div class="col-md-9">
+                        <nop-editor asp-for="Deleted" />
+                        <span asp-validation-for="Deleted"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <nop-panels id="product-panels">
+            <nop-panel asp-name="product-pictures" asp-icon="fa fa-picture-o" asp-title="@T("Admin.Catalog.Post.Pictures")" asp-hide-block-attribute-name="false" asp-hide="false" asp-advanced="false">@await Html.PartialAsync("_CreateOrUpdate.Pictures", Model)</nop-panel>
+        </nop-panels>
+    </div>
+</div>

@@ -1,0 +1,185 @@
+﻿@model GroupSearchModel
+
+@{
+    //page title
+    ViewBag.PageTitle = T("Admin.Catalog.Groups").Text;
+    //active menu item (system name)
+    Html.SetActiveMenuItemSystemName("Groups");
+    const string hideSearchBlockAttributeName = "GroupPage.HideSearchBlock";
+    var hideSearchBlock = genericAttributeService.GetAttribute<bool>(workContext.CurrentCustomer, hideSearchBlockAttributeName);
+}
+
+<div class="content-header clearfix">
+    <h1 class="pull-left">
+        @T("Admin.Catalog.Groups")
+    </h1>
+    <div class="pull-right">
+        <a asp-action="CreateGroup" class="btn bg-blue">
+            <i class="fa fa-plus-square"></i>
+            @T("Admin.Common.AddNew")
+        </a>
+        <button type="button" id="delete-selected" class="btn bg-red">
+            <i class="fa fa-trash-o"></i>
+            @T("Admin.Common.Delete.Selected")
+        </button>
+        <nop-action-confirmation asp-button-id="delete-selected" />
+    </div>
+</div>
+
+<div class="content">
+    <div class="form-horizontal">
+        <div class="panel-group">
+            <div class="panel panel-default panel-search">
+                <div class="panel-body">
+                    <div class="row search-row @(!hideSearchBlock ? "opened" : "")" data-hideAttribute="@hideSearchBlockAttributeName">
+                        <div class="search-text">@T("Admin.Common.Search")</div>
+                        <div class="icon-search"><i class="fa fa-search" aria-hidden="true"></i></div>
+                        <div class="icon-collapse"><i class="fa fa-angle-down" aria-hidden="true"></i></div>
+                    </div>
+
+                    <div class="search-body @(hideSearchBlock ? "closed" : "")">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <div class="col-md-4">
+                                        <nop-label asp-for="KeySearch" />
+                                    </div>
+                                    <div class="col-md-8">
+                                        <nop-editor asp-for="KeySearch" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-md-7 col-md-offset-5">
+                                <button type="button" id="search-Group" class="btn btn-primary btn-search">
+                                    <i class="fa fa-search"></i>
+                                    @T("Admin.Common.Search")
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel panel-default">
+            <div class="panel-body">
+                @await Html.PartialAsync("Table", new DataTablesModel
+           {
+               Name = "Group-grid",
+               UrlRead = new DataUrl("ListGroup", "Group", null),
+               SearchButtonId = "search-Group",
+               Length = Model.PageSize,
+               LengthMenu = Model.AvailablePageSizes,
+               Filters = new List<FilterParameter>
+               {
+                   new FilterParameter(nameof(Model.KeySearch))
+               },
+               ColumnCollection = new List<ColumnProperty>
+                    {
+                        new ColumnProperty(nameof(GroupModel.Id))
+                        {
+                            IsMasterCheckBox = true,
+                            Render = new RenderCheckBox("checkbox_Group"),
+                            ClassName =  NopColumnClassDefaults.CenterAll,
+                            Width = "50"
+                        },
+                        new ColumnProperty(nameof(GroupModel.PictureUrl))
+                        {
+                            Title = T("Admin.Catalog.Groups.Groups.PictureUrl").Text,
+                            ClassName =  NopColumnClassDefaults.CenterAll,
+                            Width = "120",
+                            Render = new RenderPicture()
+                        },
+                        new ColumnProperty(nameof(GroupModel.Name))
+                        {
+                            Title = T("Admin.Catalog.Groups.Name").Text
+                        },
+                        new ColumnProperty(nameof(GroupModel.CountMember))
+                        {
+                            Title = T("admin.catalog.CountMember").Text,
+                            ClassName =  NopColumnClassDefaults.CenterAll,
+                            Width = "50"
+                        },
+                        new ColumnProperty(nameof(GroupModel.CountPost))
+                        {
+                            Title = T("admin.catalog.CountPost").Text,
+                            ClassName =  NopColumnClassDefaults.CenterAll,
+                            Width = "50",
+                        },
+                        new ColumnProperty(nameof(GroupModel.CountRequest))
+                        {
+                            Title = T("admin.catalog.CountRequest").Text,
+                            ClassName =  NopColumnClassDefaults.CenterAll,
+                            Width = "50",
+                        },
+                        new ColumnProperty(nameof(GroupModel.isApproval))
+                        {
+                            Title = T("admin.catalog.isApproval").Text,
+                            ClassName =  NopColumnClassDefaults.CenterAll,
+                            Width = "50",
+                            Render = new RenderBoolean()
+                        },
+                        new ColumnProperty(nameof(GroupModel.Id))
+                        {
+                            Title = T("admin.catalog.quanlymembber").Text,
+                            ClassName =  NopColumnClassDefaults.CenterAll,
+                            Width = "100",
+                            Render = new RenderCustom("renderColumnListPost")
+                        },
+                        new ColumnProperty(nameof(GroupModel.Id))
+                        {
+                            Title = T("admin.catalog.quanlymembber").Text,
+                            ClassName =  NopColumnClassDefaults.CenterAll,
+                            Width = "100",
+                            Render = new RenderCustom("renderColumnGroupMember")
+                        },
+                        new ColumnProperty(nameof(GroupModel.Id))
+                        {
+                            Title = T("Admin.Common.Edit").Text,
+                            Width = "100",
+                            ClassName =  NopColumnClassDefaults.Button,
+                            Render = new RenderButtonEdit(new DataUrl("EditGroup"))
+                        }
+                    }
+           })
+                <script>
+                    function renderColumnGroupMember(data, type, row, meta) {
+                        return '<a href="/Group/GroupMember/' + row.Id + '" target="_blank" class="btn btn-success"> Quản lý thành viên </a>'
+                    }
+                    function renderColumnListPost(data, type, row, meta) {
+                        return '<a href="/Post/ListPost?GroupId=' + row.Id + '" target="_blank" class="btn btn-info"> Danh sách bài viết </a>'
+                    }
+                </script>
+                <script>
+                        $(document).ready(function () {
+                            $('#delete-selected-action-confirmation-submit-button').bind('click', function () {
+                                var postData = {
+                                    selectedIds: selectedIds
+                                };
+                                addAntiForgeryToken(postData);
+                                $.ajax({
+                                    cache: false,
+                                    type: "POST",
+                                    url: "@(Url.Action("DeleteGroupSelected", "Group"))",
+                                    data: postData,
+                                    error: function (jqXHR, textStatus, errorThrown) {
+                                        $('#deleteSelectedFailed-info').text(errorThrown);
+                                        $('#deleteSelectedFailed').click();
+                                    },
+                                    complete: function (jqXHR, textStatus) {
+                                        updateTable('#Group-grid');
+                                    }
+                                });
+                                $('#delete-selected-action-confirmation').modal('toggle');
+                                return false;
+                            });
+                        });
+                </script>
+                <nop-alert asp-alert-id="deleteSelectedFailed" />
+            </div>
+        </div>
+    </div>
+</div>
+

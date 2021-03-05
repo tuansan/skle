@@ -1,0 +1,152 @@
+﻿@model RoomChatSearchModel
+
+@{
+    //page title
+    ViewBag.PageTitle = T("Admin.Catalog.RoomChats").Text;
+    //active menu item (system name)
+    Html.SetActiveMenuItemSystemName("RoomChats");
+    const string hideSearchBlockAttributeName = "RoomChatPage.HideSearchBlock";
+    var hideSearchBlock = genericAttributeService.GetAttribute<bool>(workContext.CurrentCustomer, hideSearchBlockAttributeName);
+}
+
+<div class="content-header clearfix">
+    <h1 class="pull-left">
+        @T("Admin.Catalog.RoomChats") - #@Model.MemberId
+    </h1>
+    <div class="pull-right">
+        
+        <button type="button" id="delete-selected" class="btn bg-red">
+            <i class="fa fa-trash-o"></i>
+            @T("Admin.Common.Delete.Selected")
+        </button>
+        <nop-action-confirmation asp-button-id="delete-selected" />
+    </div>
+</div>
+
+<div class="content">
+    <div class="form-horizontal">
+        <div class="panel-group">
+            <div class="panel panel-default panel-search">
+                <div class="panel-body">
+                    <div class="row search-row @(!hideSearchBlock ? "opened" : "")" data-hideAttribute="@hideSearchBlockAttributeName">
+                        <div class="search-text">@T("Admin.Common.Search")</div>
+                        <div class="icon-search"><i class="fa fa-search" aria-hidden="true"></i></div>
+                        <div class="icon-collapse"><i class="fa fa-angle-down" aria-hidden="true"></i></div>
+                    </div>
+
+                    <div class="search-body @(hideSearchBlock ? "closed" : "")">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <div class="col-md-4">
+                                        <nop-label asp-for="MemberId" />
+                                    </div>
+                                    <div class="col-md-8">
+                                        <nop-select asp-for="MemberId" asp-items="Model.Members" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-md-7 col-md-offset-5">
+                                <button type="button" id="search-RoomChat" class="btn btn-primary btn-search">
+                                    <i class="fa fa-search"></i>
+                                    @T("Admin.Common.Search")
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel panel-default">
+            <div class="panel-body">
+                @await Html.PartialAsync("Table", new DataTablesModel
+           {
+               Name = "RoomChat-grid",
+               UrlRead = new DataUrl("ListRoomChat", "CloudFirestore", null),
+               SearchButtonId = "search-RoomChat",
+               Length = Model.PageSize,
+               LengthMenu = Model.AvailablePageSizes,
+               Filters = new List<FilterParameter>
+               {
+                   new FilterParameter(nameof(Model.MemberId))
+               },
+               ColumnCollection = new List<ColumnProperty>
+                    {
+                        new ColumnProperty(nameof(RoomChatModel.chatId))
+                        {
+                            IsMasterCheckBox = true,
+                            Render = new RenderCheckBox("checkbox_RoomChat", "chatId"),
+                            ClassName =  NopColumnClassDefaults.CenterAll,
+                            Width = "50"
+                        },
+                        new ColumnProperty(nameof(RoomChatModel.avatarUrl))
+                        {
+                            Title = T("Admin.Catalog.RoomChats.RoomChats.avatarUrl").Text,
+                            Width = "100",
+                            ClassName =  NopColumnClassDefaults.CenterAll,
+                            Render = new RenderPicture()
+                        },
+                        new ColumnProperty(nameof(RoomChatModel.name))
+                        {
+                            Title = T("Admin.Catalog.RoomChats.Name").Text
+                        },
+                        new ColumnProperty(nameof(RoomChatModel.lastChat))
+                        {
+                            Title = T("admin.catalog.lastChat").Text,
+                        },
+                        new ColumnProperty(nameof(RoomChatModel.times))
+                        {
+                            Title = T("admin.catalog.times").Text,
+                            Render = new RenderDate()
+                        },
+                        new ColumnProperty(nameof(RoomChatModel.timeCreate))
+                        {
+                            Title = T("admin.catalog.timeCreate").Text,
+                            Render = new RenderDate()
+                        },
+                        new ColumnProperty(nameof(RoomChatModel.chatId))
+                        {
+                            Title = T("Admin.Common.ShowChat").Text,
+                            Width = "130",
+                            ClassName =  NopColumnClassDefaults.Button,
+                            Render = new RenderButtonCustom(NopButtonClassDefaults.Olive, T("Admin.Common.ShowChat").Text)
+                            {
+                                Url = "/CloudFirestore/Chat/"
+                            }
+                        }
+                    }
+           })
+
+                <script>
+                        $(document).ready(function () {
+                            $('#delete-selected-action-confirmation-submit-button').bind('click', function () {
+                                var postData = {
+                                    selectedIds: selectedIds
+                                };
+                                addAntiForgeryToken(postData);
+                                $.ajax({
+                                    cache: false,
+                                    type: "POST",
+                                    url: "@(Url.Action("DeleteRoomChatSelected", "CloudFirestore"))",
+                                    data: postData,
+                                    error: function (jqXHR, textStatus, errorThrown) {
+                                        $('#deleteSelectedFailed-info').text(errorThrown);
+                                        $('#deleteSelectedFailed').click();
+                                    },
+                                    complete: function (jqXHR, textStatus) {
+                                        updateTable('#RoomChat-grid');
+                                    }
+                                });
+                                $('#delete-selected-action-confirmation').modal('toggle');
+                                return false;
+                            });
+                        });
+                </script>
+                <nop-alert asp-alert-id="deleteSelectedFailed" />
+            </div>
+        </div>
+    </div>
+</div>

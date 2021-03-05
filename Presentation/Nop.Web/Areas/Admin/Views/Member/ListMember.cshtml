@@ -1,0 +1,250 @@
+﻿@model MemberSearchModel
+
+@{
+    //page title
+    ViewBag.PageTitle = T("Admin.Catalog.Members").Text;
+    //active menu item (system name)
+    Html.SetActiveMenuItemSystemName("Members");
+    const string hideSearchBlockAttributeName = "MemberPage.HideSearchBlock";
+    var hideSearchBlock = genericAttributeService.GetAttribute<bool>(workContext.CurrentCustomer, hideSearchBlockAttributeName);
+}
+
+<div class="content-header clearfix">
+    <h1 class="pull-left">
+        @T("Admin.Catalog.Members")
+    </h1>
+    <div class="pull-right">
+        @*<div class="btn-group">
+            <button type="button" class="btn btn-success">
+                <i class="fa fa-download"></i>
+                @T("Admin.Common.Export")
+            </button>
+            <button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+                <span class="caret"></span>
+                <span class="sr-only">&nbsp;</span>
+            </button>
+            <ul class="dropdown-menu" role="menu">
+                <li>
+                    <a asp-action="ExportXlsx">
+                        <i class="fa fa-file-excel-o"></i>
+                        @T("Admin.Common.ExportToExcel")
+                    </a>
+                </li>
+            </ul>
+        </div>
+        <button type="button" name="importexcel" class="btn bg-olive" data-toggle="modal" data-target="#importexcel-window">
+            <i class="fa fa-upload"></i>
+            @T("Admin.Common.Import")
+        </button>*@
+        <button type="button" id="delete-selected" class="btn bg-red">
+            <i class="fa fa-trash-o"></i>
+            @T("Admin.Common.Delete.Selected")
+        </button>
+        <nop-action-confirmation asp-button-id="delete-selected" />
+    </div>
+</div>
+
+<div class="content">
+    <div class="form-horizontal">
+        <div class="panel-group">
+            <div class="panel panel-default panel-search">
+                <div class="panel-body">
+                    <div class="row search-row @(!hideSearchBlock ? "opened" : "")" data-hideAttribute="@hideSearchBlockAttributeName">
+                        <div class="search-text">@T("Admin.Common.Search")</div>
+                        <div class="icon-search"><i class="fa fa-search" aria-hidden="true"></i></div>
+                        <div class="icon-collapse"><i class="fa fa-angle-down" aria-hidden="true"></i></div>
+                    </div>
+
+                    <div class="search-body @(hideSearchBlock ? "closed" : "")">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <div class="col-md-4">
+                                        <nop-label asp-for="KeySearch" />
+                                    </div>
+                                    <div class="col-md-8">
+                                        <nop-editor asp-for="KeySearch" />
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <div class="col-md-4">
+                                        <nop-label asp-for="StatusId" />
+                                    </div>
+                                    <div class="col-md-8">
+                                        <nop-select asp-for="StatusId" asp-items="Model.ListStatus" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <div class="col-md-4">
+                                        <nop-label asp-for="PhoneNumber" />
+                                    </div>
+                                    <div class="col-md-8">
+                                        <nop-editor asp-for="PhoneNumber" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-md-7 col-md-offset-5">
+                                <button type="button" id="search-Member" class="btn btn-primary btn-search">
+                                    <i class="fa fa-search"></i>
+                                    @T("Admin.Common.Search")
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel panel-default">
+            <div class="panel-body">
+                @await Html.PartialAsync("Table", new DataTablesModel
+           {
+               Name = "Member-grid",
+               UrlRead = new DataUrl("ListMember", "Member", null),
+               UrlUpdate = new DataUrl("UpdateInlineMember", "Member", null),
+               SearchButtonId = "search-Member",
+               Length = Model.PageSize,
+               LengthMenu = Model.AvailablePageSizes,
+               Filters = new List<FilterParameter>
+               {
+                   new FilterParameter(nameof(Model.KeySearch)),
+                   new FilterParameter(nameof(Model.PhoneNumber)),
+                   new FilterParameter(nameof(Model.StatusId))
+               },
+               ColumnCollection = new List<ColumnProperty>
+                    {
+                        new ColumnProperty(nameof(MemberModel.Id))
+                        {
+                            IsMasterCheckBox = true,
+                            Render = new RenderCheckBox("checkbox_Member"),
+                            ClassName =  NopColumnClassDefaults.CenterAll,
+                            Width = "50"
+                        },
+                        new ColumnProperty(nameof(MemberModel.AvatarUrl))
+                        {
+                            Title = T("Admin.Catalog.Members.AvatarUrl").Text,
+                            ClassName =  NopColumnClassDefaults.CenterAll,
+                            Width = "100",
+                            Render = new RenderPicture()
+                        },
+                        new ColumnProperty(nameof(MemberModel.Name))
+                        {
+                            Title = T("Admin.Catalog.Members.Name").Text
+                        },
+                        new ColumnProperty(nameof(MemberModel.PhoneNumber))
+                        {
+                            Title = T("Admin.Members.PhoneNumber").Text
+                        },
+                        new ColumnProperty(nameof(MemberModel.CountFriend))
+                        {
+                            Title = T("Admin.Catalog.Members.CountFriend").Text,
+                            ClassName =  NopColumnClassDefaults.CenterAll,
+                            Width = "50"
+                        },
+                        new ColumnProperty(nameof(MemberModel.CountGroup))
+                        {
+                            Title = T("Admin.Catalog.Members.CountGroup").Text,
+                            ClassName =  NopColumnClassDefaults.CenterAll,
+                            Width = "50"
+                        },
+                        new ColumnProperty(nameof(MemberModel.CountPost))
+                        {
+                            Title = T("Admin.Catalog.Members.CountPost").Text,
+                            ClassName =  NopColumnClassDefaults.CenterAll,
+                            Width = "50",
+                        },
+                                new ColumnProperty(nameof(MemberModel.Id))
+                                {
+                                    Title = T("Admin.Member.Members.ShowLog").Text,
+                                    Width = "100",
+                                    ClassName =  NopColumnClassDefaults.CenterAll,
+                                    Render = new RenderButtonCustom(NopButtonClassDefaults.Olive, T("Admin.Member.Members.ShowLog").Text)
+                                    {
+                                        OnClickFunctionName = "markAsShowLog"
+                                    }
+                                },
+                        new ColumnProperty(nameof(MemberModel.Active))
+                        {
+                            Title = T("admin.catalog.Active").Text,
+                            ClassName =  NopColumnClassDefaults.CenterAll,
+                            Width = "50",
+                            Render = new RenderBoolean(),
+                                    Editable = true,
+                                    EditType = EditType.Checkbox
+                        },
+                                new ColumnProperty(nameof(MemberModel.Id))
+                                {
+                                    Title = T("Admin.Member.Members.Chat").Text,
+                                    Width = "100",
+                                    ClassName =  NopColumnClassDefaults.CenterAll,
+                                    Render = new RenderButtonCustom(NopButtonClassDefaults.Info, T("Admin.Member.Members.Chat").Text)
+                                    {
+                                        OnClickFunctionName = "markAsChat"
+                                    }
+                                },
+
+                        new ColumnProperty(nameof(MemberModel.Id))
+                        {
+                            Title = T("Admin.Common.Edit").Text,
+                            Width = "100",
+                            ClassName =  NopColumnClassDefaults.Button,
+                            Render = new RenderButtonEdit(new DataUrl("EditMember"))
+                        }
+                    }
+           })
+                <script>
+                        $(document).ready(function () {
+                            $('#delete-selected-action-confirmation-submit-button').bind('click', function () {
+                                var postData = {
+                                    selectedIds: selectedIds
+                                };
+                                addAntiForgeryToken(postData);
+                                $.ajax({
+                                    cache: false,
+                                    type: "POST",
+                                    url: "@(Url.Action("DeleteMemberSelected", "Member"))",
+                                    data: postData,
+                                    error: function (jqXHR, textStatus, errorThrown) {
+                                        $('#deleteSelectedFailed-info').text(errorThrown);
+                                        $('#deleteSelectedFailed').click();
+                                    },
+                                    complete: function (jqXHR, textStatus) {
+                                        updateTable('#Member-grid');
+                                    }
+                                });
+                                $('#delete-selected-action-confirmation').modal('toggle');
+                                return false;
+                            });
+                        });
+                </script>
+                <nop-alert asp-alert-id="deleteSelectedFailed" />
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    function markAsShowLog(id) {
+        console.log(id);
+        var url = "/Member/ListMemberLog/" + id;
+        window.open(
+            url,
+            '_blank'
+        );
+    };
+    function markAsChat(id) {
+        console.log(id);
+        var url = "/CloudFirestore/ListRoomChat/" + id;
+        window.open(
+            url,
+            '_blank'
+        );
+    };
+</script>

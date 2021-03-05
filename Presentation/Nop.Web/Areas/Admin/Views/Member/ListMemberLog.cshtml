@@ -1,0 +1,100 @@
+﻿@model MemberLogSearchModel
+
+@{
+    //page title
+    ViewBag.PageTitle = T("Admin.Catalog.MemberLogs").Text;
+    //active menu item (system name)
+    Html.SetActiveMenuItemSystemName("Members");
+    const string hideSearchBlockAttributeName = "MemberLogPage.HideSearchBlock";
+    var hideSearchBlock = genericAttributeService.GetAttribute<bool>(workContext.CurrentCustomer, hideSearchBlockAttributeName);
+}
+
+<div class="content-header clearfix">
+    <h1 class="pull-left">
+        @T("Admin.Catalog.MemberLogs")
+    </h1>
+</div>
+
+<div class="content">
+    <div class="form-horizontal">
+        <div class="panel-group">
+            <div class="panel panel-default panel-search">
+                <div class="panel-body">
+                    <div class="row search-row @(!hideSearchBlock ? "opened" : "")" data-hideAttribute="@hideSearchBlockAttributeName">
+                        <div class="search-text">@T("Admin.Common.Search")</div>
+                        <div class="icon-search"><i class="fa fa-search" aria-hidden="true"></i></div>
+                        <div class="icon-collapse"><i class="fa fa-angle-down" aria-hidden="true"></i></div>
+                    </div>
+
+                    <div class="search-body @(hideSearchBlock ? "closed" : "")">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <div class="col-md-4">
+                                        <nop-label asp-for="KeySearch" />
+                                    </div>
+                                    <div class="col-md-8">
+                                        <nop-editor asp-for="KeySearch" />
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <div class="col-md-4">
+                                        <nop-label asp-for="MemberId" />
+                                    </div>
+                                    <div class="col-md-8">
+                                        <nop-select asp-for="MemberId" asp-items="Model.ListMembers" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <div class="col-md-7 col-md-offset-5">
+                                <button type="button" id="search-MemberLog" class="btn btn-primary btn-search">
+                                    <i class="fa fa-search"></i>
+                                    @T("Admin.Common.Search")
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel panel-default">
+            <div class="panel-body">
+                @await Html.PartialAsync("Table", new DataTablesModel
+           {
+               Name = "MemberLog-grid",
+               UrlRead = new DataUrl("ListMemberLog", "Member", null),
+               SearchButtonId = "search-MemberLog",
+               Length = Model.PageSize,
+               LengthMenu = Model.AvailablePageSizes,
+               Filters = new List<FilterParameter>
+               {
+                   new FilterParameter(nameof(Model.KeySearch)),
+                   new FilterParameter(nameof(Model.MemberId))
+               },
+               ColumnCollection = new List<ColumnProperty>
+                    {
+                        new ColumnProperty(nameof(MemberLogModel.CreatedAt))
+                        {
+                            Title = T("Admin.Catalog.MemberLogs.CreatedAt").Text,
+                            ClassName =  NopColumnClassDefaults.CenterAll,
+                            Width = "150",
+                            Render = new RenderDate()
+                        },
+                        new ColumnProperty(nameof(MemberLogModel.Content))
+                        {
+                            Title = T("Admin.Catalog.MemberLogs.Content").Text
+                        }
+                    }
+                })
+
+                <nop-alert asp-alert-id="deleteSelectedFailed" />
+            </div>
+        </div>
+    </div>
+</div>

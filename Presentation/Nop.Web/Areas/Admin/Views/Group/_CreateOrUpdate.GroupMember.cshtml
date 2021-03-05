@@ -1,0 +1,97 @@
+﻿@model GroupMemberSearchModel
+
+<div class="panel-body">
+    <div class="sub-panel">
+        @await Html.PartialAsync("Table", new DataTablesModel
+        {
+            Name = "GroupMembers-grid",
+            UrlRead = new DataUrl("ListGroupMember", "Group", new RouteValueDictionary { [nameof(Model.GroupId)] = Model.GroupId }),
+            UrlDelete = new DataUrl("DeleteGroupMemberRequest", "Group", null),
+            Length = Model.PageSize,
+            LengthMenu = Model.AvailablePageSizes,
+            ColumnCollection = new List<ColumnProperty>
+                {
+                    new ColumnProperty(nameof(GroupMemberModel.AvatarUrl))
+                    {
+                        Title = T("Admin.Catalog.GroupMember.FileUrl").Text,
+                        Render = new RenderPicture(),
+                        ClassName = NopColumnClassDefaults.CenterAll
+                    },
+                    new ColumnProperty(nameof(GroupMemberModel.Name))
+                    {
+                        Title = T("Admin.Catalog.GroupMember.Name").Text,
+                        ClassName = NopColumnClassDefaults.CenterAll
+                    },
+                    new ColumnProperty(nameof(GroupMemberModel.Phone))
+                    {
+                        Title = T("Admin.Catalog.GroupMember.Phone").Text,
+                        ClassName = NopColumnClassDefaults.CenterAll
+                    },
+                    new ColumnProperty(nameof(GroupMemberModel.StatusId))
+                    {
+                        Title = T("Admin.Catalog.GroupMember.Confirm").Text,
+                        Render = new RenderCustom("renderColumn"),
+                        ClassName = NopColumnClassDefaults.CenterAll
+                    },
+                    new ColumnProperty(nameof(GroupMemberModel.Id))
+                    {
+                        Title = T("Admin.Common.Expulsion").Text,
+                        Width = "100",
+                        Render = new RenderButtonRemove(T("Admin.Common.Expulsion").Text),
+                        ClassName = NopColumnClassDefaults.Button
+                    }
+                }
+        })
+
+        <script>
+            function renderColumn(data, type, row, meta) {
+                if (row.StatusId == 1) {
+                    return '<button class="btn btn-success" onclick="markAsConfirm(' + row.Id + ')">Đồng ý</button><button class="btn btn-danger" onclick="markAsCancel(' + row.Id + ')">Từ trối</button>'
+                }
+                else {
+                    return '<a href="/Member/EditMember/' + row.MemberId + '" target="_blank" class="btn btn-info">Thông tin</a>'
+                }
+            }
+        </script>
+        <script>
+                                function markAsConfirm(id) {
+                                    var postData = {
+                                        id: id
+                                    };
+                                    addAntiForgeryToken(postData);
+                                    $.ajax({
+                                        cache: false,
+                                        type: "POST",
+                                        url: "@(Url.Action("ConfirmGroupMemberRequest", "Group"))",
+                                        data: postData,
+                                        error: function (jqXHR, textStatus, errorThrown) {
+                                            console.log("Fail")
+                                        },
+                                        complete: function (jqXHR, textStatus) {
+                                            updateTable('#GroupMembers-grid');
+                                        }
+                                    });
+                                    return false;
+                            };
+                            function markAsCancel(id) {
+                                    var postData = {
+                                        id: id
+                                    };
+                                    addAntiForgeryToken(postData);
+                                    $.ajax({
+                                        cache: false,
+                                        type: "POST",
+                                        url: "@(Url.Action("CancelGroupMemberRequest", "Group"))",
+                                        data: postData,
+                                        error: function (jqXHR, textStatus, errorThrown) {
+                                            console.log("Fail")
+                                        },
+                                        complete: function (jqXHR, textStatus) {
+                                            updateTable('#GroupMembers-grid');
+                                        }
+                                    });
+                                    return false;
+                                };
+        </script>
+    </div>
+</div>

@@ -1,0 +1,82 @@
+﻿@model NotificationModel
+
+<div asp-validation-summary="All"></div>
+<input asp-for="Id" type="hidden" />
+<input asp-for="Times" type="hidden" />
+<input asp-for="CreatedAt" type="hidden" />
+
+<div class="content">
+    <div class="form-horizontal">
+        <div class="panel panel-default">
+            <div class="panel-body">
+                <div>
+                    <div class="form-group">
+                        <div class="col-md-3">
+                            <nop-label asp-for="Title" />
+                        </div>
+                        <div class="col-md-9">
+                            <nop-editor asp-for="Title"/>
+                            <span asp-validation-for="Title"></span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-md-3">
+                            <nop-label asp-for="Content" />
+                        </div>
+                        <div class="col-md-9">
+                            <nop-textarea asp-for="Content"  />
+                            <span asp-validation-for="Content"></span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-md-3">
+                            <nop-label asp-for="TypeId" />
+                        </div>
+                        <div class="col-md-9">
+                            <nop-select asp-for="TypeId" asp-items="Model.AvailableTypes"  />
+                            <span asp-validation-for="TypeId"></span>
+                        </div>
+                    </div>
+                    <div class="form-group" id="div-members" style="display:@((Model.TypeId == (int)ENTypeNotification.all || Model.TypeId == (int)ENTypeNotification.group) ? "none" : "")">
+                        <div class="col-md-3">
+                            <nop-label asp-for="TargetMembers" />
+                        </div>
+                        <div class="col-md-9">
+                            <nop-select asp-for="TargetMembers" asp-items="Model.AvailableMembers" asp-multiple="true" />
+                            <span asp-validation-for="TargetMembers"></span>
+                        </div>
+                    </div>
+                    <div class="form-group" id="div-groups" style="display:@((Model.TypeId == (int)ENTypeNotification.all || Model.TypeId == (int)ENTypeNotification.member) ? "none" : "")">
+                        <div class="col-md-3">
+                            <nop-label asp-for="TargetGroups" />
+                        </div>
+                        <div class="col-md-9">
+                            <nop-select asp-for="TargetGroups" asp-items="Model.AvailableGroups" asp-multiple="true" />
+                            <span asp-validation-for="TargetGroups"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    $(document).ready(function () {
+        $("#TypeId").change(function () {
+            switch (this.value) {
+                case "0":
+                    $("#div-members").hide();
+                    $("#div-groups").hide();
+                    break;
+                case "1":
+                    $("#div-members").show();
+                    $("#div-groups").hide();
+                    break;
+                case "2":
+                    $("#div-members").hide();
+                    $("#div-groups").show();
+                    break;
+            }
+        })
+    })
+</script>

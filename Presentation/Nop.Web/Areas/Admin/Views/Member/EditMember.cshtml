@@ -1,0 +1,36 @@
+﻿@model MemberModel
+
+@{
+    //page title
+    ViewBag.PageTitle = T("Admin.Catalog.Member.EditDetails").Text;
+    //active menu item (system name)
+    Html.SetActiveMenuItemSystemName("Members");
+}
+
+<form asp-controller="Member" asp-action="EditMember" method="post" id="Member-form">
+    <div class="content-header clearfix">
+        <h1 class="pull-left">
+            @T("Admin.Catalog.Member.EditDetails") - @Model.Name
+            <small>
+                <i class="fa fa-arrow-circle-left"></i>
+                <a asp-action="ListMember">@T("Admin.Catalog.BackToList")</a>
+            </small>
+        </h1>
+        <div class="pull-right">
+            <button type="submit" name="save" class="btn bg-blue">
+                <i class="fa fa-floppy-o"></i>
+                @T("Admin.Common.Save")
+            </button>
+            <button type="submit" name="save-continue" class="btn bg-blue">
+                <i class="fa fa-floppy-o"></i>
+                @T("Admin.Common.SaveContinue")
+            </button>
+            <span id="Member-delete" class="btn bg-red">
+                <i class="fa fa-trash-o"></i>
+                @T("Admin.Common.Delete")
+            </span>
+        </div>
+    </div>
+    @await Html.PartialAsync("_CreateOrUpdate", Model)
+</form>
+<nop-delete-confirmation asp-action="DeleteMember" asp-model-id="@Model.Id" asp-button-id="Member-delete" />

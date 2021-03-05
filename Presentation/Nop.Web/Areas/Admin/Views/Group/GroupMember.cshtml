@@ -1,0 +1,22 @@
+﻿@model GroupMemberSearchModel
+@{
+    //page title
+    ViewBag.PageTitle = T("Admin.Catalog.Group.EditDetails").Text;
+    //active menu item (system name)
+    Html.SetActiveMenuItemSystemName("Groups");
+    const string hideInfoBlockAttributeName = "GroupMember.HideInfoBlock";
+    var hideInfoBlock = genericAttributeService.GetAttribute<bool>(workContext.CurrentCustomer, hideInfoBlockAttributeName);
+    const string hideAddBlockAttributeName = "GroupMemberAdd.HideInfoBlock";
+    var hideAddBlock = genericAttributeService.GetAttribute<bool>(workContext.CurrentCustomer, hideAddBlockAttributeName);
+
+}
+<div class="content">
+    <div class="form-horizontal">
+        <nop-panels id="group-panels">
+            <nop-panel asp-name="GroupMember-Add" asp-icon="fa fa-plus" asp-title="@T("Admin.Configuration.GroupMemberAdd")" asp-hide-block-attribute-name="@hideAddBlockAttributeName" asp-hide="@hideAddBlock" asp-advanced="false">@await Html.PartialAsync("_CreateOrUpdate.AddMember", Model)</nop-panel>
+            <nop-panel asp-name="GroupMember" asp-icon="fa fa-group" asp-title="@T("Admin.Configuration.GroupMember")" asp-hide-block-attribute-name="@hideInfoBlockAttributeName" asp-hide="@hideInfoBlock" asp-advanced="false">@await Html.PartialAsync("_CreateOrUpdate.GroupMember", Model)</nop-panel>
+        </nop-panels>
+</div>
+</div>
+<nop-alert asp-alert-id="addGroupMemberAlert" asp-alert-message="@T("Admin.Catalog.Posts.Pictures.Alert.AddNew")" />
+<nop-alert asp-alert-id="GroupMemberAddAlert" asp-alert-message="@T("Admin.Catalog.Posts.Pictures.Alert.PictureAdd")" />
